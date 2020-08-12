@@ -16,14 +16,20 @@ public class NumberField extends Field {
 		Blocks.LIGHT_GRAY_WOOL.getDefaultState()
 	};
 
-	private int value;
+	private int value = 0;
 
-	public NumberField(int value) {
+	public NumberField(FieldVisibility visibility, int value) {
+		super(visibility);
+
 		if (value < 0 || value >= VALUES_TO_STATES.length) {
 			throw new IllegalStateException("Value must be between 0 and 8 (inclusive)");
 		}
 
 		this.value = value;
+	}
+
+	public NumberField(int value) {
+		this(FieldVisibility.COVERED, value);
 	}
 
 	@Override
@@ -32,7 +38,7 @@ public class NumberField extends Field {
 	}
 
 	public NumberField increaseValue() {
-		return new NumberField(Math.min(this.value + 1, 8));
+		return new NumberField(this.getVisibility(), Math.min(this.value + 1, 8));
 	}
 
 	@Override

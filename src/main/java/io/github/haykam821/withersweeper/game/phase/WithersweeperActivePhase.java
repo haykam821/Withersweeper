@@ -144,7 +144,7 @@ public class WithersweeperActivePhase {
 		ItemStack flagStack = ItemStackBuilder.of(this.config.getFlagStack())
 			.addLore(new LiteralText("Right-click a covered field to").formatted(Formatting.GRAY))
 			.addLore(new LiteralText("mark it as containing a mine.").formatted(Formatting.GRAY))
-			.setCount(this.board.getRemainingMines())
+			.setCount(this.board.getRemainingFlags())
 			.build();
 
 		for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {

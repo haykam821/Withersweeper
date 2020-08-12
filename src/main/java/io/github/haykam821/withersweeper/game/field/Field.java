@@ -10,7 +10,15 @@ public class Field {
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
 
-	private FieldVisibility visibility = FieldVisibility.COVERED;
+	private FieldVisibility visibility;
+
+	public Field(FieldVisibility visibility) {
+		this.visibility = visibility;
+	}
+
+	public Field() {
+		this(FieldVisibility.COVERED);
+	}
 
 	public FieldVisibility getVisibility() {
 		return this.visibility;

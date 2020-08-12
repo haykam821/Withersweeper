@@ -75,18 +75,18 @@ public class Board {
 		return x >= 0 && z >= 0 && x < this.config.x && z < this.config.z;
 	}
 
-	public int getRemainingMines() {
-		int remainingMines = 0;
+	public int getRemainingFlags() {
+		int remainingFlags = this.config.mines;
 		for (int x = 0; x < this.config.x; x++) {
 			for (int z = 0; z < this.config.z; z++) {
 				Field field = this.getField(x, z);
-				if (field.getVisibility() == FieldVisibility.COVERED && field instanceof MineField) {
-					remainingMines += 1;
+				if (field.getVisibility() == FieldVisibility.FLAGGED) {
+					remainingFlags -= 1;
 				}
 			}
 		}
 
-		return remainingMines;
+		return remainingFlags;
 	}
 
 	public boolean isCompleted() {
