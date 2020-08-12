@@ -126,7 +126,7 @@ public class Board {
 
 				Field field = this.getField(x, z);
 				if (field != null) {
-					world.setBlockState(pos, field.getCoveredBlockState(), 0);
+					world.setBlockState(pos, field.getCoveredBlockState(), 2);
 				}
 			}
 		}
