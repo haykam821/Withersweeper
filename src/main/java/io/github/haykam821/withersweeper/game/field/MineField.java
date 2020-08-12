@@ -9,6 +9,11 @@ public class MineField extends Field {
 	private static final BlockState STATE = Blocks.TNT.getDefaultState();
 
 	@Override
+	public boolean isCompleted() {
+		return true;
+	}
+
+	@Override
 	public void uncover(PlayerEntity uncoverer, WithersweeperActivePhase phase) {
 		super.uncover(uncoverer, phase);
 		phase.mistakes += 1;

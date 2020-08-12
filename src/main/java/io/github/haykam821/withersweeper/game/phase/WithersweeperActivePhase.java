@@ -156,6 +156,27 @@ public class WithersweeperActivePhase {
 		}
 	}
 
+	private ActionResult modifyField(ServerPlayerEntity uncoverer, BlockPos pos, Field field) {
+		if (this.isModifyingFlags(uncoverer) && field.getVisibility() != FieldVisibility.UNCOVERED) {
+			if (field.getVisibility() == FieldVisibility.FLAGGED) {
+				field.setVisibility(FieldVisibility.COVERED);
+				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, SoundCategory.BLOCKS, 1, 1);
+			} else {
+				field.setVisibility(FieldVisibility.FLAGGED);
+				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
+			}
+
+			return ActionResult.SUCCESS;
+		} else if (field.getVisibility() == FieldVisibility.COVERED) {
+			field.uncover(uncoverer, this);
+			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
+
+			return ActionResult.SUCCESS;
+		}
+			
+		return ActionResult.PASS;
+	}
+
 	private ActionResult useBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
 		if (!this.started) return ActionResult.PASS;
 		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
@@ -167,25 +188,12 @@ public class WithersweeperActivePhase {
 		this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
 
 		Field field = this.board.getField(pos.getX(), pos.getZ());
-		if (this.isModifyingFlags(uncoverer) && field.getVisibility() != FieldVisibility.UNCOVERED) {
-			if (field.getVisibility() == FieldVisibility.FLAGGED) {
-				field.setVisibility(FieldVisibility.COVERED);
-				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, SoundCategory.BLOCKS, 1, 1);
-			} else {
-				field.setVisibility(FieldVisibility.FLAGGED);
-				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
-			}
-			
+		ActionResult result = this.modifyField(uncoverer, pos, field);
+
+		if (result == ActionResult.SUCCESS) {
 			this.checkMistakes(uncoverer);
 			this.board.build(this.world);
 			this.updateFlagCount();
-
-			return ActionResult.SUCCESS;
-		} else if (field.getVisibility() == FieldVisibility.COVERED) {
-			field.uncover(uncoverer, this);
-			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
-
-			this.checkMistakes(uncoverer);
 
 			if (this.board.isCompleted()) {
 				Text text = new LiteralText("The board has been completed in " + this.timeElapsed / 20 + " seconds!").formatted(Formatting.GOLD);
@@ -194,13 +202,10 @@ public class WithersweeperActivePhase {
 				}
 
 				this.gameWorld.closeWorld();
-			} else {
-				this.board.build(this.world);
 			}
-			return ActionResult.SUCCESS;
 		}
-			
-		return ActionResult.PASS;
+
+		return result;
 	}
 
 	private void addPlayer(ServerPlayerEntity player) {

@@ -28,6 +28,10 @@ public class Field {
 		this.visibility = visibility;
 	}
 
+	public boolean isCompleted() {
+		return this.getVisibility() == FieldVisibility.UNCOVERED;
+	}
+
 	public void uncover(PlayerEntity uncoverer, WithersweeperActivePhase phase) {
 		this.setVisibility(FieldVisibility.UNCOVERED);
 	}

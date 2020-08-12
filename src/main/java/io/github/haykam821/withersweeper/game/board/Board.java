@@ -96,7 +96,7 @@ public class Board {
 		for (int x = 0; x < this.config.x; x++) {
 			for (int z = 0; z < this.config.z; z++) {
 				Field field = this.getField(x, z);
-				if (field.getVisibility() == FieldVisibility.FLAGGED) {
+				if (field.getVisibility() == FieldVisibility.FLAGGED || (field.getVisibility() == FieldVisibility.UNCOVERED && field instanceof MineField)) {
 					remainingFlags -= 1;
 				}
 			}
@@ -109,7 +109,7 @@ public class Board {
 		for (int x = 0; x < this.config.x; x++) {
 			for (int z = 0; z < this.config.z; z++) {
 				Field field = this.getField(x, z);
-				if (field.getVisibility() != FieldVisibility.UNCOVERED && !(field instanceof MineField)) {
+				if (!field.isCompleted()) {
 					return false;
 				}
 			}
