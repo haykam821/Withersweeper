@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "withersweeper",
+	"version": "${version}",
+	"name": "Withersweeper",
+	"description": "A singleplayer minesweeper minigame for Minecraft.",
+	"authors": [
+		"haykam821"
+	],
+	"contact": {
+		"homepage": "https://github.com/haykam821/Withersweeper#readme",
+		"issues": "https://github.com/haykam821/Withersweeper/issues"
+	},
+	"entrypoints": {
+		"main": [
+			"io.github.haykam821.withersweeper.Main"
+		]
+	},
+	"license": "MIT",
+	"icon": "assets/withersweeper/icon.png",
+	"depends": {
+		"fabricloader": ">=0.4.0"
+	}
+}
