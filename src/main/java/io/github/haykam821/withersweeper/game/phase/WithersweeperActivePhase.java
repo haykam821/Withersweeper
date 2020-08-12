@@ -1,6 +1,5 @@
 package io.github.haykam821.withersweeper.game.phase;
 
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
@@ -61,7 +60,7 @@ public class WithersweeperActivePhase {
 
 	public static CompletableFuture<Void> open(MinecraftServer server, WithersweeperConfig config) {
 		MapTemplate template = MapTemplate.createEmpty();
-		Board board = new Board(config.getBoardConfig(), new Random());
+		Board board = new Board(config.getBoardConfig());
 		board.build(template);
 
 		return CompletableFuture.runAsync(() -> {
@@ -164,6 +163,8 @@ public class WithersweeperActivePhase {
 		BlockPos pos = hitResult.getBlockPos();
 		if (pos.getY() != 0) return ActionResult.PASS;
 		if (!this.board.isValidPos(pos.getX(), pos.getZ())) return ActionResult.PASS;
+
+		this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
 
 		Field field = this.board.getField(pos.getX(), pos.getZ());
 		if (this.isModifyingFlags(uncoverer) && field.getVisibility() != FieldVisibility.UNCOVERED) {

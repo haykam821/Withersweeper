@@ -13,8 +13,9 @@ import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
 public class Board {
 	private final BoardConfig config;
 	private final Field[][] fields;
+	private boolean placedMines = false;
 
-	public Board(BoardConfig config, Random random) {
+	public Board(BoardConfig config) {
 		this.config = config;
 
 		this.fields = new Field[this.config.x][this.config.z];
@@ -27,10 +28,22 @@ public class Board {
 		if (this.config.mines > (this.config.x * this.config.z)) {
 			throw new IllegalStateException("Cannot have more mines than fields");
 		}
+	}
+
+	public boolean placeMines(int avoidX, int avoidZ, Random random) {
+		if (this.placedMines) {
+			return false;
+		}
 
 		for (int index = 0; index < this.config.mines; index++) {
 			int x = random.nextInt(this.config.x);
 			int z = random.nextInt(this.config.z);
+
+			// Prevent mines from generating on top of the avoidance position
+			if (x == avoidX && z == avoidZ) {
+				index--;
+				continue;
+			}
 
 			// Prevent two mines from generating on each other
 			Field field = this.getField(x, z);
@@ -53,6 +66,9 @@ public class Board {
 			this.increaseField(x, z + 1);
 			this.increaseField(x + 1, z + 1);
 		}
+
+		this.placedMines = true;
+		return true;
 	}
 	
 	public void setField(int x, int z, Field field) {
