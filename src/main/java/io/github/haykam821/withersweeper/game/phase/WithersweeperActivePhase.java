@@ -9,7 +9,6 @@ import io.github.haykam821.withersweeper.game.field.FieldVisibility;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -25,6 +24,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
@@ -58,26 +58,26 @@ public class WithersweeperActivePhase {
 		this.board = board;
 	}
 
-	public static CompletableFuture<Void> open(MinecraftServer server, WithersweeperConfig config) {
+	public static CompletableFuture<Void> open(GameOpenContext<WithersweeperConfig> context) {
 		MapTemplate template = MapTemplate.createEmpty();
-		Board board = new Board(config.getBoardConfig());
+		Board board = new Board(context.getConfig().getBoardConfig());
 		board.build(template);
 
 		return CompletableFuture.runAsync(() -> {
 			BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-				.setGenerator(new TemplateChunkGenerator(template, BlockPos.ORIGIN))
+				.setGenerator(new TemplateChunkGenerator(context.getServer(), template, BlockPos.ORIGIN))
 				.setDefaultGameMode(GameMode.ADVENTURE);
-			GameWorld gameWorld = GameWorld.open(server, worldConfig);
+			GameWorld gameWorld = context.openWorld(worldConfig);
 
-			WithersweeperActivePhase phase = new WithersweeperActivePhase(gameWorld, config, board);
+			WithersweeperActivePhase phase = new WithersweeperActivePhase(gameWorld, context.getConfig(), board);
 
-			gameWorld.newGame(game -> {
-				game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-				game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-				game.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
+			gameWorld.openGame(game -> {
 				game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
-				game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+				game.setRule(GameRule.CRAFTING, RuleResult.DENY);
 				game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+				game.setRule(GameRule.HUNGER, RuleResult.DENY);
+				game.setRule(GameRule.PORTALS, RuleResult.DENY);
+				game.setRule(GameRule.PVP, RuleResult.DENY);
 				game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
 				// Listeners
@@ -88,7 +88,7 @@ public class WithersweeperActivePhase {
 				game.on(RequestStartListener.EVENT, phase::requestStart);
 				game.on(UseBlockListener.EVENT, phase::useBlock);
 			});
-		}, Util.getServerWorkerExecutor());
+		}, Util.getMainWorkerExecutor());
 	}
 
 	private void tick() {
@@ -113,7 +113,7 @@ public class WithersweeperActivePhase {
 			player.sendMessage(text, false);
 		}
 
-		this.gameWorld.closeWorld();
+		this.gameWorld.close();
 	}
 
 	private boolean isFull() {
@@ -201,7 +201,7 @@ public class WithersweeperActivePhase {
 					player.sendMessage(text, false);
 				}
 
-				this.gameWorld.closeWorld();
+				this.gameWorld.close();
 			}
 		}
 
@@ -212,10 +212,10 @@ public class WithersweeperActivePhase {
 		this.spawn(player);
 	}
 
-	private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player
 		this.spawn(player);
-		return true;
+		return ActionResult.SUCCESS;
 	}
 
 	private void spawn(ServerPlayerEntity player) {
