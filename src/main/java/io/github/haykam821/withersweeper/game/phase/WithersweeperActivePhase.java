@@ -236,7 +236,7 @@ public class WithersweeperActivePhase {
 						if (field.getVisibility() == FieldVisibility.COVERED) {
 							this.modifyField(uncoverer, pos, field);
 						}
-						if (field instanceof NumberField && ((NumberField)field).getValue() == 0) {
+						if (field instanceof NumberField && ((NumberField) field).getValue() == 0) {
 							uncheckedPositions.add(pos);
 						}
 					}
