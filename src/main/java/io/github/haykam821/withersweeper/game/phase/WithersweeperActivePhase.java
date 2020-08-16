@@ -224,17 +224,17 @@ public class WithersweeperActivePhase {
 						for (int z = -1; z < 2; z++) {
 							BlockPos checkPos = blockPosToCheck.get(0);
 							if (checkedBlockPos.contains(checkPos)) continue;
-							BlockPos blockPos = checkPos.add(x, 0, z);
-							Field field = this.board.getField(blockPos.getX(), blockPos.getZ());
+							BlockPos pos = checkPos.add(x, 0, z);
+							Field field = this.board.getField(pos.getX(), pos.getZ());
 							if (field == null) {
-								checkedBlockPos.add(blockPos);
+								checkedBlockPos.add(pos);
 								continue;
 							}
 							if (field.getVisibility() == FieldVisibility.COVERED)
-								this.modifyField(uncoverer, blockPos, field);
+								this.modifyField(uncoverer, pos, field);
 							if (field instanceof  NumberField) {
 								if (((NumberField)field).getValue() == 0)
-									blockPosToCheck.add(blockPos);
+									blockPosToCheck.add(pos);
 							}
 						}
 					}
