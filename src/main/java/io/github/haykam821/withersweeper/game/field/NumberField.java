@@ -42,7 +42,7 @@ public class NumberField extends Field {
 	}
 
 	public int getValue() {
-		return value;
+		return this.value;
 	}
 
 	@Override

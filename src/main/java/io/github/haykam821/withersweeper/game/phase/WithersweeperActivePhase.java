@@ -214,33 +214,35 @@ public class WithersweeperActivePhase {
 	}
 
 	private void uncoverNeighbors(ServerPlayerEntity uncoverer, BlockPos clickedBlockPos, Field clickedField) {
-		if (clickedField instanceof NumberField) {
-			if (((NumberField)clickedField).getValue() == 0) {
-				List<BlockPos> blockPosToCheck = new ArrayList<>();
-				List<BlockPos> checkedBlockPos = new ArrayList<>();
-				blockPosToCheck.add(clickedBlockPos);
-				while (!blockPosToCheck.isEmpty()) {
-					for (int x = -1; x < 2; x++) {
-						for (int z = -1; z < 2; z++) {
-							BlockPos checkPos = blockPosToCheck.get(0);
-							if (checkedBlockPos.contains(checkPos)) continue;
-							BlockPos pos = checkPos.add(x, 0, z);
-							Field field = this.board.getField(pos.getX(), pos.getZ());
-							if (field == null) {
-								checkedBlockPos.add(pos);
-								continue;
-							}
-							if (field.getVisibility() == FieldVisibility.COVERED)
-								this.modifyField(uncoverer, pos, field);
-							if (field instanceof  NumberField) {
-								if (((NumberField)field).getValue() == 0)
-									blockPosToCheck.add(pos);
-							}
+		if (clickedField instanceof NumberField) return;
+		if (((NumberField) clickedField).getValue() == 0) {
+			List<BlockPos> uncheckedPositions = new ArrayList<>();
+			List<BlockPos> checkedPositions = new ArrayList<>();
+			uncheckedPositions.add(clickedBlockPos);
+
+			while (!uncheckedPositions.isEmpty()) {
+				BlockPos checkPos = uncheckedPositions.get(0);
+				if (checkedPositions.contains(checkPos)) continue;
+
+				for (int x = -1; x < 2; x++) {
+					for (int z = -1; z < 2; z++) {
+						BlockPos pos = checkPos.add(x, 0, z);
+						Field field = this.board.getField(pos.getX(), pos.getZ());
+						if (field == null) {
+							checkedPositions.add(pos);
+							continue;
+						}
+
+						if (field.getVisibility() == FieldVisibility.COVERED) {
+							this.modifyField(uncoverer, pos, field);
+						}
+						if (field instanceof NumberField && ((NumberField)field).getValue() == 0) {
+							uncheckedPositions.add(pos);
 						}
 					}
-					checkedBlockPos.add(blockPosToCheck.get(0));
-					blockPosToCheck.remove(0);
 				}
+				checkedPositions.add(checkPos);
+				uncheckedPositions.remove(0);
 			}
 		}
 	}
