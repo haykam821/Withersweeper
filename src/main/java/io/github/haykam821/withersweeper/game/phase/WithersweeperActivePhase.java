@@ -195,7 +195,7 @@ public class WithersweeperActivePhase {
 		ActionResult result = this.modifyField(uncoverer, pos, field);
 
 		if (result == ActionResult.SUCCESS) {
-			this.uncoverNeighbors(uncoverer, pos, field);
+			if (this.config.uncoverNeighbors()) this.uncoverNeighbors(uncoverer, pos, field);
 			this.checkMistakes(uncoverer);
 			this.board.build(this.world);
 			this.updateFlagCount();
