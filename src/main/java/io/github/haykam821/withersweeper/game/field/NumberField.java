@@ -41,6 +41,10 @@ public class NumberField extends Field {
 		return new NumberField(this.getVisibility(), Math.min(this.value + 1, 8));
 	}
 
+	public int getValue() {
+		return value;
+	}
+
 	@Override
 	public String toString() {
 		return "NumberField{value=" + this.value + "}";

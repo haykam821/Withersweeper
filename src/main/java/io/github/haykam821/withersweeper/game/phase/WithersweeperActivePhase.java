@@ -8,6 +8,7 @@ import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
+import io.github.haykam821.withersweeper.game.field.NumberField;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -194,7 +195,7 @@ public class WithersweeperActivePhase {
 		ActionResult result = this.modifyField(uncoverer, pos, field);
 
 		if (result == ActionResult.SUCCESS) {
-			this.autoReveal(uncoverer, pos, field);
+			this.uncoverNeighbors(uncoverer, pos, field);
 			this.checkMistakes(uncoverer);
 			this.board.build(this.world);
 			this.updateFlagCount();
@@ -212,27 +213,34 @@ public class WithersweeperActivePhase {
 		return result;
 	}
 
-	private void autoReveal(ServerPlayerEntity uncoverer, BlockPos clickedBlockPos, Field clickedField) {
-		if (clickedField.getBlockState() == Blocks.WHITE_WOOL.getDefaultState()) {
-			List<BlockPos> blockPosToCheck = new ArrayList<>();
-			List<BlockPos> checkedBlockPos = new ArrayList<>();
-			blockPosToCheck.add(clickedBlockPos);
-			while (!blockPosToCheck.isEmpty()) {
-				for (int x = -1; x < 2; x++) {
-					for (int z = -1; z < 2; z++) {
-						if (checkedBlockPos.contains(blockPosToCheck.get(0))) continue;
-						BlockPos blockPos = new BlockPos(blockPosToCheck.get(0).getX() + x, blockPosToCheck.get(0).getY(), blockPosToCheck.get(0).getZ() + z);
-						Field field = this.board.getField(blockPos.getX(), blockPos.getZ());
-						if (field == null) {
-							checkedBlockPos.add(blockPos);
-							continue;
+	private void uncoverNeighbors(ServerPlayerEntity uncoverer, BlockPos clickedBlockPos, Field clickedField) {
+		if (clickedField instanceof NumberField) {
+			if (((NumberField)clickedField).getValue() == 0) {
+				List<BlockPos> blockPosToCheck = new ArrayList<>();
+				List<BlockPos> checkedBlockPos = new ArrayList<>();
+				blockPosToCheck.add(clickedBlockPos);
+				while (!blockPosToCheck.isEmpty()) {
+					for (int x = -1; x < 2; x++) {
+						for (int z = -1; z < 2; z++) {
+							BlockPos checkPos = blockPosToCheck.get(0);
+							if (checkedBlockPos.contains(checkPos)) continue;
+							BlockPos blockPos = checkPos.add(x, 0, z);
+							Field field = this.board.getField(blockPos.getX(), blockPos.getZ());
+							if (field == null) {
+								checkedBlockPos.add(blockPos);
+								continue;
+							}
+							if (field.getVisibility() == FieldVisibility.COVERED)
+								this.modifyField(uncoverer, blockPos, field);
+							if (field instanceof  NumberField) {
+								if (((NumberField)field).getValue() == 0)
+									blockPosToCheck.add(blockPos);
+							}
 						}
-						if (field.getVisibility() == FieldVisibility.COVERED) this.modifyField(uncoverer, blockPos, field);
-						if (field.getBlockState() == Blocks.WHITE_WOOL.getDefaultState()) blockPosToCheck.add(blockPos);
 					}
+					checkedBlockPos.add(blockPosToCheck.get(0));
+					blockPosToCheck.remove(0);
 				}
-				checkedBlockPos.add(blockPosToCheck.get(0));
-				blockPosToCheck.remove(blockPosToCheck.get(0));
 			}
 		}
 	}
