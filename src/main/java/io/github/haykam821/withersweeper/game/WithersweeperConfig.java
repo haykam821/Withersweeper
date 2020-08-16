@@ -50,6 +50,6 @@ public class WithersweeperConfig {
 	}
 
 	public boolean uncoverNeighbors() {
-		return uncoverNeighbors;
+		return this.uncoverNeighbors;
 	}
 }

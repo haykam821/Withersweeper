@@ -214,7 +214,7 @@ public class WithersweeperActivePhase {
 	}
 
 	private void uncoverNeighbors(ServerPlayerEntity uncoverer, BlockPos clickedBlockPos, Field clickedField) {
-		if (clickedField instanceof NumberField) return;
+		if (!(clickedField instanceof NumberField)) return;
 		if (((NumberField) clickedField).getValue() == 0) {
 			List<BlockPos> uncheckedPositions = new ArrayList<>();
 			List<BlockPos> checkedPositions = new ArrayList<>();
@@ -222,8 +222,10 @@ public class WithersweeperActivePhase {
 
 			while (!uncheckedPositions.isEmpty()) {
 				BlockPos checkPos = uncheckedPositions.get(0);
-				if (checkedPositions.contains(checkPos)) continue;
-
+				if (checkedPositions.contains(checkPos)) {
+					uncheckedPositions.remove(0);
+					continue;
+				}
 				for (int x = -1; x < 2; x++) {
 					for (int z = -1; z < 2; z++) {
 						BlockPos pos = checkPos.add(x, 0, z);
