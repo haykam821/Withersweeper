@@ -133,6 +133,10 @@ public class Board {
 		}
 	}
 
+	public Board buildMap() {
+		return this;
+	}
+
 	public void build(WorldAccess world) {
 		BlockPos.Mutable pos = new BlockPos.Mutable();
 

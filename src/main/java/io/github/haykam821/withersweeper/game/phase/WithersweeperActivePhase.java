@@ -25,6 +25,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
+import xyz.nucleoid.plasmid.game.GameWaitingLobby;
 import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
@@ -39,8 +40,8 @@ import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
-import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
 
 public class WithersweeperActivePhase {
 	private final ServerWorld world;
@@ -58,37 +59,36 @@ public class WithersweeperActivePhase {
 		this.board = board;
 	}
 
-	public static CompletableFuture<Void> open(GameOpenContext<WithersweeperConfig> context) {
+	public static CompletableFuture<GameWorld> open(GameOpenContext<WithersweeperConfig> context) {
 		MapTemplate template = MapTemplate.createEmpty();
 		Board board = new Board(context.getConfig().getBoardConfig());
 		board.build(template);
-
-		return CompletableFuture.runAsync(() -> {
+		return CompletableFuture.supplyAsync(board::buildMap, Util.getMainWorkerExecutor()).thenCompose(map -> {
 			BubbleWorldConfig worldConfig = new BubbleWorldConfig()
 				.setGenerator(new TemplateChunkGenerator(context.getServer(), template, BlockPos.ORIGIN))
-				.setDefaultGameMode(GameMode.ADVENTURE);
-			GameWorld gameWorld = context.openWorld(worldConfig);
+				.setDefaultGameMode(GameMode.ADVENTURE)
+					.setSpawnAt(new Vec3d(context.getConfig().getBoardConfig().x / 2d, 1, context.getConfig().getBoardConfig().x / 2d));
+			return context.openWorld(worldConfig).thenApply(gameWorld -> {
+				WithersweeperActivePhase phase = new WithersweeperActivePhase(gameWorld, context.getConfig(), board);
 
-			WithersweeperActivePhase phase = new WithersweeperActivePhase(gameWorld, context.getConfig(), board);
+				return GameWaitingLobby.open(gameWorld, context.getConfig().getPlayerConfig(), game -> {
+					game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
+					game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+					game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+					game.setRule(GameRule.HUNGER, RuleResult.DENY);
+					game.setRule(GameRule.PORTALS, RuleResult.DENY);
+					game.setRule(GameRule.PVP, RuleResult.DENY);
+					game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
-			gameWorld.openGame(game -> {
-				game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
-				game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-				game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-				game.setRule(GameRule.HUNGER, RuleResult.DENY);
-				game.setRule(GameRule.PORTALS, RuleResult.DENY);
-				game.setRule(GameRule.PVP, RuleResult.DENY);
-				game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
-
-				// Listeners
-				game.on(GameTickListener.EVENT, phase::tick);
-				game.on(OfferPlayerListener.EVENT, phase::offerPlayer);
-				game.on(PlayerAddListener.EVENT, phase::addPlayer);
-				game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-				game.on(RequestStartListener.EVENT, phase::requestStart);
-				game.on(UseBlockListener.EVENT, phase::useBlock);
+					// Listeners
+					game.on(PlayerAddListener.EVENT, phase::addPlayer);
+					game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+					game.on(RequestStartListener.EVENT, phase::requestStart);
+				});
 			});
-		}, Util.getMainWorkerExecutor());
+
+
+		});
 	}
 
 	private void tick() {
@@ -125,14 +125,25 @@ public class WithersweeperActivePhase {
 	}
 
 	private StartResult requestStart() {
-		PlayerConfig playerConfig = this.config.getPlayerConfig();
-		if (this.gameWorld.getPlayerCount() < playerConfig.getMinPlayers()) {
-			return StartResult.notEnoughPlayers();
-		}
+		this.gameWorld.openGame(game -> {
+			game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
+			game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+			game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+			game.setRule(GameRule.HUNGER, RuleResult.DENY);
+			game.setRule(GameRule.PORTALS, RuleResult.DENY);
+			game.setRule(GameRule.PVP, RuleResult.DENY);
+			game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
+			// Listeners
+			game.on(GameTickListener.EVENT, this::tick);
+			game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
+			game.on(PlayerAddListener.EVENT, this::addPlayer);
+			game.on(PlayerDeathListener.EVENT, this::onPlayerDeath);
+			game.on(UseBlockListener.EVENT, this::useBlock);
+		});
 		this.started = true;
 		this.updateFlagCount();
-		return StartResult.ok();
+		return StartResult.OK;
 	}
 
 	private boolean isModifyingFlags(PlayerEntity player) {
