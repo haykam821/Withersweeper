@@ -14,8 +14,7 @@ public class WithersweeperConfig {
 			BoardConfig.CODEC.fieldOf("board").forGetter(WithersweeperConfig::getBoardConfig),
 			PlayerConfig.CODEC.fieldOf("players").forGetter(WithersweeperConfig::getPlayerConfig),
 			ItemStack.CODEC.optionalFieldOf("flag_stack", new ItemStack(Items.RED_BANNER)).forGetter(WithersweeperConfig::getFlagStack),
-			Codec.INT.optionalFieldOf("max_mistakes", 1).forGetter(WithersweeperConfig::getMaxMistakes),
-			Codec.BOOL.optionalFieldOf("uncover_neighbors", false).forGetter(WithersweeperConfig::uncoverNeighbors)
+			Codec.INT.optionalFieldOf("max_mistakes", 1).forGetter(WithersweeperConfig::getMaxMistakes)
 		).apply(instance, WithersweeperConfig::new);
 	});
 
@@ -23,14 +22,12 @@ public class WithersweeperConfig {
 	private final PlayerConfig playerConfig;
 	private final ItemStack flagStack;
 	private final int maxMistakes;
-	private final boolean uncoverNeighbors;
 
-	public WithersweeperConfig(BoardConfig boardConfig, PlayerConfig playerConfig, ItemStack flagStack, int maxMistakes, boolean uncoverNeighbors) {
+	public WithersweeperConfig(BoardConfig boardConfig, PlayerConfig playerConfig, ItemStack flagStack, int maxMistakes) {
 		this.boardConfig = boardConfig;
 		this.playerConfig = playerConfig;
 		this.flagStack = flagStack;
 		this.maxMistakes = maxMistakes;
-		this.uncoverNeighbors = uncoverNeighbors;
 	}
 
 	public BoardConfig getBoardConfig() {
@@ -47,9 +44,5 @@ public class WithersweeperConfig {
 
 	public int getMaxMistakes() {
 		return this.maxMistakes;
-	}
-
-	public boolean uncoverNeighbors() {
-		return this.uncoverNeighbors;
 	}
 }
