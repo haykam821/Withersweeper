@@ -25,9 +25,16 @@ public class Board {
 			}
 		}
 
-		if (this.config.mines > (this.config.x * this.config.z)) {
-			throw new IllegalStateException("Cannot have more mines than fields");
+		// Mines can never be placed in the first uncovered field and the 8 fields neighboring it
+		if (this.config.mines > (this.config.x * this.config.z) - 9) {
+			throw new IllegalStateException("Cannot have more mines than candidate fields for placing mines");
 		}
+	}
+
+	private boolean isOnTopOfOrAround(int x, int z, int onTopX, int onTopZ) {
+		if (x < onTopX - 1 || z < onTopZ - 1) return false;
+		if (x > onTopX + 1 || z > onTopZ + 1) return false;
+		return true;
 	}
 
 	public boolean placeMines(int avoidX, int avoidZ, Random random) {
@@ -39,8 +46,8 @@ public class Board {
 			int x = random.nextInt(this.config.x);
 			int z = random.nextInt(this.config.z);
 
-			// Prevent mines from generating on top of the avoidance position
-			if (x == avoidX && z == avoidZ) {
+			// Prevent mines from generating on top of or around the avoidance position
+			if (this.isOnTopOfOrAround(x, z, avoidX, avoidZ)) {
 				index--;
 				continue;
 			}
