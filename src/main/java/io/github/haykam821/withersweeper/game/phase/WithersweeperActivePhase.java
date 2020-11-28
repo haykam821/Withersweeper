@@ -2,14 +2,12 @@ package io.github.haykam821.withersweeper.game.phase;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
 import io.github.haykam821.withersweeper.game.field.NumberField;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
