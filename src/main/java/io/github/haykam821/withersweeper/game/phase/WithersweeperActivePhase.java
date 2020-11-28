@@ -4,6 +4,8 @@ import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
+import io.github.haykam821.withersweeper.game.field.MineField;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -48,6 +50,7 @@ public class WithersweeperActivePhase {
 	private int timeElapsed = 0;
 	public int mistakes = 0;
 	private boolean started = false;
+	private boolean firstReveal = true;
 
 	public WithersweeperActivePhase(GameSpace gameSpace, WithersweeperConfig config, Board board) {
 		this.world = gameSpace.getWorld();
@@ -183,6 +186,16 @@ public class WithersweeperActivePhase {
 		this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
 
 		Field field = this.board.getField(pos.getX(), pos.getZ());
+
+		if (this.firstReveal) {
+			this.firstReveal = false;
+			while (field.getBlockState() != Blocks.WHITE_WOOL.getDefaultState()) {
+				this.board.generateBoard();
+				this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
+				field = this.board.getField(pos.getX(), pos.getZ());
+			}
+		}
+
 		ActionResult result = this.modifyField(uncoverer, pos, field);
 
 		if (result == ActionResult.SUCCESS) {

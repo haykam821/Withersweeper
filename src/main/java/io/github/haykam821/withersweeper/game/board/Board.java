@@ -19,6 +19,10 @@ public class Board {
 		this.config = config;
 
 		this.fields = new Field[this.config.x][this.config.z];
+		this.generateBoard();
+	}
+
+	public void generateBoard() {
 		for (int x = 0; x < this.config.x; x++) {
 			for (int z = 0; z < this.config.z; z++) {
 				this.setField(x, z, new NumberField(0));
@@ -28,6 +32,7 @@ public class Board {
 		if (this.config.mines > (this.config.x * this.config.z)) {
 			throw new IllegalStateException("Cannot have more mines than fields");
 		}
+		this.placedMines = false;
 	}
 
 	public boolean placeMines(int avoidX, int avoidZ, Random random) {
