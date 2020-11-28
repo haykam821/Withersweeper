@@ -1,16 +1,14 @@
 package io.github.haykam821.withersweeper.game.board;
 
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
 import io.github.haykam821.withersweeper.game.field.MineField;
 import io.github.haykam821.withersweeper.game.field.NumberField;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldAccess;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
 
 public class Board {
 	private final BoardConfig config;
@@ -150,11 +148,9 @@ public class Board {
 		}
 	}
 
-	public CompletableFuture<MapTemplate> buildFromTemplate() {
-		return CompletableFuture.supplyAsync(() -> {
-			MapTemplate template = MapTemplate.createEmpty();
-			this.build(template);
-			return template;
-		}, Util.getMainWorkerExecutor());
+	public MapTemplate buildFromTemplate() {
+		MapTemplate template = MapTemplate.createEmpty();
+		this.build(template);
+		return template;
 	}
 }

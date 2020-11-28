@@ -1,5 +1,6 @@
 {
 	"type": "withersweeper:withersweeper",
+	"name": "Beginner Withersweeper",
 	"board": {
 		"x": 9,
 		"z": 9,
