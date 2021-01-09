@@ -88,6 +88,12 @@ public class WithersweeperActivePhase {
 
 	private void tick() {
 		this.timeElapsed += 1;
+
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+			if (player.getY() < 0) {
+				this.spawn(player);
+			}
+		}
 	}
 
 	private Text getMistakeText(PlayerEntity causer) {
@@ -210,7 +216,7 @@ public class WithersweeperActivePhase {
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player
 		this.spawn(player);
-		return ActionResult.SUCCESS;
+		return ActionResult.FAIL;
 	}
 
 	private void spawn(ServerPlayerEntity player) {
