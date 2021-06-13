@@ -25,6 +25,7 @@ import xyz.nucleoid.fantasy.BubbleWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameOpenProcedure;
 import xyz.nucleoid.plasmid.game.GameSpace;
+import xyz.nucleoid.plasmid.game.GameWaitingLobby;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
@@ -66,6 +67,7 @@ public class WithersweeperActivePhase {
 
 		return context.createOpenProcedure(worldConfig, game -> {
 			WithersweeperActivePhase phase = new WithersweeperActivePhase(game.getSpace(), context.getConfig(), board);
+			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
 
 			// Rules
 			game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
