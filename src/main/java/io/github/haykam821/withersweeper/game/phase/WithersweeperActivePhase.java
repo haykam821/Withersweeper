@@ -20,6 +20,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
@@ -104,7 +105,7 @@ public class WithersweeperActivePhase {
 			player.sendMessage(text, false);
 		}
 
-		this.gameSpace.close();
+		this.gameSpace.close(GameCloseReason.FINISHED);
 	}
 
 	private boolean isModifyingFlags(PlayerEntity player) {
@@ -172,7 +173,7 @@ public class WithersweeperActivePhase {
 					player.sendMessage(text, false);
 				}
 
-				this.gameSpace.close();
+				this.gameSpace.close(GameCloseReason.FINISHED);
 			}
 		}
 
