@@ -2,6 +2,8 @@ package io.github.haykam821.withersweeper.game.field;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 public class NumberField extends Field {
 	private static final BlockState[] VALUES_TO_STATES = new BlockState[] {
@@ -35,6 +37,11 @@ public class NumberField extends Field {
 	@Override
 	public BlockState getBlockState() {
 		return VALUES_TO_STATES[this.value];
+	}
+
+	@Override
+	public Text getInfoMessage() {
+		return new LiteralText("This field has " + this.value + " mine" + (this.value == 1 ? "" : "s") + " around it");
 	}
 
 	public NumberField increaseValue() {

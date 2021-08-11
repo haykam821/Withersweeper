@@ -18,11 +18,13 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
+import xyz.nucleoid.plasmid.game.event.DropItemListener;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
@@ -55,6 +57,7 @@ public class WithersweeperActivePhase {
 			WithersweeperActivePhase.setRules(game);
 
 			// Listeners
+			game.on(DropItemListener.EVENT, phase::onDropItem);
 			game.on(GameOpenListener.EVENT, phase::open);
 			game.on(GameTickListener.EVENT, phase::tick);
 			game.on(PlayerAddListener.EVENT, phase::addPlayer);
@@ -70,7 +73,6 @@ public class WithersweeperActivePhase {
 		game.setRule(GameRule.HUNGER, RuleResult.DENY);
 		game.setRule(GameRule.PORTALS, RuleResult.DENY);
 		game.setRule(GameRule.PVP, RuleResult.DENY);
-		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 	}
 
 	private void open() {
@@ -187,6 +189,27 @@ public class WithersweeperActivePhase {
 	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player
 		this.spawn(player);
+		return ActionResult.FAIL;
+	}
+
+	private boolean attemptToSendInfoMessage(PlayerEntity player, BlockPos pos) {
+		if (pos.getY() != 0) return false;
+		if (!this.board.isValidPos(pos.getX(), pos.getZ())) return false;
+
+		Field field = this.board.getField(pos.getX(), pos.getZ());
+
+		Text message = field.getCoveredInfoMessage().shallowCopy().formatted(Formatting.DARK_PURPLE);
+		player.sendMessage(message, true);
+
+		return true;
+	}
+
+	private ActionResult onDropItem(PlayerEntity player, int slot, ItemStack stack) {
+		HitResult hit = player.raycast(8, 0, false);
+		if (hit.getType() == HitResult.Type.BLOCK) {
+			this.attemptToSendInfoMessage(player, ((BlockHitResult) hit).getBlockPos());
+		}
+
 		return ActionResult.FAIL;
 	}
 
