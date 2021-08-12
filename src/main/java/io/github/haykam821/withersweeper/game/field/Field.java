@@ -1,9 +1,10 @@
 package io.github.haykam821.withersweeper.game.field;
 
+import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
@@ -38,8 +39,9 @@ public class Field {
 		return this.getVisibility() == FieldVisibility.UNCOVERED;
 	}
 
-	public void uncover(PlayerEntity uncoverer, WithersweeperActivePhase phase) {
+	public void uncover(ServerPlayerEntity uncoverer, WithersweeperActivePhase phase) {
 		this.setVisibility(FieldVisibility.UNCOVERED);
+		phase.getStatisticsForPlayer(uncoverer).increment(Main.FIELDS_UNCOVERED, 1);
 	}
 
 	public BlockState getBlockState() {

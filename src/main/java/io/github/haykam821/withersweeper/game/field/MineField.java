@@ -1,9 +1,10 @@
 package io.github.haykam821.withersweeper.game.field;
 
+import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
@@ -17,8 +18,10 @@ public class MineField extends Field {
 	}
 
 	@Override
-	public void uncover(PlayerEntity uncoverer, WithersweeperActivePhase phase) {
+	public void uncover(ServerPlayerEntity uncoverer, WithersweeperActivePhase phase) {
 		super.uncover(uncoverer, phase);
+
+		phase.getStatisticsForPlayer(uncoverer).increment(Main.MINES_REVEALED, 1);
 		phase.mistakes += 1;
 	}
 

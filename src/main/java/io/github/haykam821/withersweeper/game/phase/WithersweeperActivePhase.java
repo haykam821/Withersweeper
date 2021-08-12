@@ -1,5 +1,9 @@
 package io.github.haykam821.withersweeper.game.phase;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
@@ -32,13 +36,19 @@ import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
+import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
+import xyz.nucleoid.plasmid.game.stats.StatisticMap;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.util.PlayerRef;
 
 public class WithersweeperActivePhase {
 	private final ServerWorld world;
 	public final GameSpace gameSpace;
 	private final WithersweeperConfig config;
 	private final Board board;
+	private final GameStatisticBundle statistics;
+	private final Set<PlayerRef> participants = new HashSet<>();
 	private int timeElapsed = 0;
 	public int mistakes = 0;
 
@@ -47,6 +57,7 @@ public class WithersweeperActivePhase {
 		this.gameSpace = gameSpace;
 		this.config = config;
 		this.board = board;
+		this.statistics = gameSpace.getStatistics(Main.MOD_ID);
 	}
 
 	public static void open(GameSpace gameSpace, WithersweeperConfig config, Board board) {
@@ -107,6 +118,10 @@ public class WithersweeperActivePhase {
 			player.sendMessage(text, false);
 		}
 
+		for (PlayerRef participant : this.participants) {
+			this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_LOST, 1);
+		}
+
 		this.gameSpace.close(GameCloseReason.FINISHED);
 	}
 
@@ -152,6 +167,13 @@ public class WithersweeperActivePhase {
 		return ActionResult.PASS;
 	}
 
+	private void addParticipant(ServerPlayerEntity player) {
+		PlayerRef participant = PlayerRef.of(player);
+		if (this.participants.add(participant)) {
+			this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_PLAYED, 1);
+		}
+	}
+
 	private ActionResult useBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
 		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
 
@@ -165,6 +187,8 @@ public class WithersweeperActivePhase {
 		ActionResult result = this.modifyField(uncoverer, pos, field);
 
 		if (result == ActionResult.SUCCESS) {
+			this.addParticipant(uncoverer);
+
 			this.checkMistakes(uncoverer);
 			this.board.build(this.world);
 			this.updateFlagCount();
@@ -173,6 +197,11 @@ public class WithersweeperActivePhase {
 				Text text = new LiteralText("The board has been completed in " + this.timeElapsed / 20 + " seconds!").formatted(Formatting.GOLD);
 				for (PlayerEntity player : this.gameSpace.getPlayers()) {
 					player.sendMessage(text, false);
+				}
+
+				for (PlayerRef participant : this.participants) {
+					this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_WON, 1);
+					this.statistics.forPlayer(participant).increment(StatisticKeys.QUICKEST_TIME, this.timeElapsed);
 				}
 
 				this.gameSpace.close(GameCloseReason.FINISHED);
@@ -211,6 +240,10 @@ public class WithersweeperActivePhase {
 		}
 
 		return ActionResult.FAIL;
+	}
+
+	public StatisticMap getStatisticsForPlayer(ServerPlayerEntity player) {
+		return this.statistics.forPlayer(player);
 	}
 
 	private void spawn(ServerPlayerEntity player) {

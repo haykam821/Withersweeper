@@ -1,0 +1,5 @@
+{
+	"statistic.bundle.withersweeper": "Withersweeper",
+	"statistic.withersweeper.fields_uncovered": "Fields uncovered",
+	"statistic.withersweeper.mines_revealed": "Mines revealed"
+}
