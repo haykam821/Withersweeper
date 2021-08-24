@@ -8,6 +8,7 @@ import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -158,7 +159,7 @@ public class WithersweeperActivePhase {
 
 			return ActionResult.SUCCESS;
 		} else if (field.getVisibility() == FieldVisibility.COVERED) {
-			field.uncover(uncoverer, this);
+			field.uncover(pos, uncoverer, this, new LongArraySet(), 0);
 			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
 
 			return ActionResult.SUCCESS;
@@ -244,6 +245,10 @@ public class WithersweeperActivePhase {
 
 	public StatisticMap getStatisticsForPlayer(ServerPlayerEntity player) {
 		return this.statistics.forPlayer(player);
+	}
+
+	public Board getBoard() {
+		return this.board;
 	}
 
 	private void spawn(ServerPlayerEntity player) {

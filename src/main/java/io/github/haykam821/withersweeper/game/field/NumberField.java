@@ -35,6 +35,11 @@ public class NumberField extends Field {
 	}
 
 	@Override
+	public boolean canUncoverRecursively() {
+		return this.value == 0;
+	}
+
+	@Override
 	public BlockState getBlockState() {
 		return VALUES_TO_STATES[this.value];
 	}
