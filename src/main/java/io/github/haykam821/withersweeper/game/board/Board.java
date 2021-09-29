@@ -8,7 +8,7 @@ import io.github.haykam821.withersweeper.game.field.MineField;
 import io.github.haykam821.withersweeper.game.field.NumberField;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldAccess;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.map_templates.MapTemplate;
 
 public class Board {
 	private final BoardConfig config;

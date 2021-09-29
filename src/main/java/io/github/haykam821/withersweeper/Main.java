@@ -11,7 +11,7 @@ public class Main implements ModInitializer {
 	public static final String MOD_ID = "withersweeper";
 
 	private static final Identifier WITHERSWEEPER_ID = new Identifier(MOD_ID, "withersweeper");
-	public static final GameType<WithersweeperConfig> WITHERSWEEPER_TYPE = GameType.register(WITHERSWEEPER_ID, WithersweeperWaitingPhase::open, WithersweeperConfig.CODEC);
+	public static final GameType<WithersweeperConfig> WITHERSWEEPER_TYPE = GameType.register(WITHERSWEEPER_ID, WithersweeperConfig.CODEC, WithersweeperWaitingPhase::open);
 
 	private static final Identifier MINES_REVEALED_ID = new Identifier(MOD_ID, "mines_revealed");
 	public static final StatisticKey<Integer> MINES_REVEALED = StatisticKey.intKey(MINES_REVEALED_ID, StatisticKey.StorageType.TOTAL);

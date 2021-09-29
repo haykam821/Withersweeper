@@ -1,4 +1,8 @@
 {
+	"game.withersweeper.beginner_withersweeper": "Beginner Withersweeper",
+	"game.withersweeper.expert_withersweeper": "Expert Withersweeper",
+	"game.withersweeper.intermediate_withersweeper": "Intermediate Withersweeper",
+	"gameType.withersweeper.withersweeper": "Withersweeper",
 	"statistic.bundle.withersweeper": "Withersweeper",
 	"statistic.withersweeper.fields_uncovered": "Fields uncovered",
 	"statistic.withersweeper.mines_revealed": "Mines revealed"

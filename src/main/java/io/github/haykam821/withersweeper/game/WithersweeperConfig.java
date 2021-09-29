@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.haykam821.withersweeper.game.board.BoardConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 public class WithersweeperConfig {
 	public static final Codec<WithersweeperConfig> CODEC = RecordCodecBuilder.create(instance -> {
