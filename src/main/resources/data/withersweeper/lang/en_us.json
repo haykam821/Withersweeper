@@ -5,5 +5,16 @@
 	"gameType.withersweeper.withersweeper": "Withersweeper",
 	"statistic.bundle.withersweeper": "Withersweeper",
 	"statistic.withersweeper.fields_uncovered": "Fields uncovered",
-	"statistic.withersweeper.mines_revealed": "Mines revealed"
+	"statistic.withersweeper.mines_revealed": "Mines revealed",
+	"text.withersweeper.complete": "The board has been completed in %s seconds!",
+	"text.withersweeper.flag_description.line1": "Right-click a covered field to",
+	"text.withersweeper.flag_description.line2": "mark it as containing a mine.",
+	"text.withersweeper.info.covered": "This field is covered",
+	"text.withersweeper.info.default": "This is a field",
+	"text.withersweeper.info.flagged": "This field is flagged",
+	"text.withersweeper.info.mine": "This field is a mine",
+	"text.withersweeper.info.number": "This field has %s mine around it",
+	"text.withersweeper.info.number.plural": "This field has %s mines around it",
+	"text.withersweeper.reveal_mine": "%s revealed a mine!",
+	"text.withersweeper.reveal_mine.max_mistakes": "%s revealed a mine! The maximum of %s mistakes have been made."
 }

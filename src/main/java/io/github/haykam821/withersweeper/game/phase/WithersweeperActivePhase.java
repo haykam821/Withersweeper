@@ -16,9 +16,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -103,12 +102,12 @@ public class WithersweeperActivePhase {
 	}
 
 	private Text getMistakeText(PlayerEntity causer) {
-		MutableText displayName = causer.getDisplayName().copy();
+		Text displayName = causer.getDisplayName();
 
 		if (this.config.getMaxMistakes() <= 1) {
-			return displayName.append(new LiteralText(" revealed a mine!")).formatted(Formatting.RED);
+			return new TranslatableText("text.withersweeper.reveal_mine", displayName).formatted(Formatting.RED);
 		} else {
-			return displayName.append(new LiteralText(" revealed a mine! The maximum of " + this.config.getMaxMistakes() + " mistakes have been made.")).formatted(Formatting.RED);
+			return new TranslatableText("text.withersweeper.reveal_mine.max_mistakes", displayName, this.config.getMaxMistakes()).formatted(Formatting.RED);
 		}
 	}
 
@@ -133,8 +132,8 @@ public class WithersweeperActivePhase {
 
 	private void updateFlagCount() {
 		ItemStack flagStack = ItemStackBuilder.of(this.config.getFlagStack())
-			.addLore(new LiteralText("Right-click a covered field to").formatted(Formatting.GRAY))
-			.addLore(new LiteralText("mark it as containing a mine.").formatted(Formatting.GRAY))
+			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
+			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
 			.setCount(this.board.getRemainingFlags())
 			.build();
 
@@ -195,7 +194,7 @@ public class WithersweeperActivePhase {
 			this.updateFlagCount();
 
 			if (this.board.isCompleted()) {
-				Text text = new LiteralText("The board has been completed in " + this.timeElapsed / 20 + " seconds!").formatted(Formatting.GOLD);
+				Text text = new TranslatableText("text.withersweeper.complete", this.timeElapsed / 20).formatted(Formatting.GOLD);
 				for (PlayerEntity player : this.gameSpace.getPlayers()) {
 					player.sendMessage(text, false);
 				}

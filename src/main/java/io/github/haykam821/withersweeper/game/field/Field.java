@@ -6,8 +6,8 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
 
 public class Field {
@@ -17,9 +17,9 @@ public class Field {
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
 
-	private static final Text DEFAULT_INFO_MESSAGE = new LiteralText("This is a field");
-	private static final Text COVERED_INFO_MESSAGE = new LiteralText("This field is covered");
-	private static final Text FLAGGED_INFO_MESSAGE = new LiteralText("This field is flagged");
+	private static final Text DEFAULT_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.default");
+	private static final Text COVERED_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.covered");
+	private static final Text FLAGGED_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.flagged");
 
 	private FieldVisibility visibility;
 

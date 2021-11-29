@@ -6,13 +6,13 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
 
 public class MineField extends Field {
 	private static final BlockState STATE = Blocks.TNT.getDefaultState();
-	private static final Text INFO_MESSAGE = new LiteralText("This field is a mine");
+	private static final Text INFO_MESSAGE = new TranslatableText("text.withersweeper.info.mine");
 
 	@Override
 	public boolean isCompleted() {
