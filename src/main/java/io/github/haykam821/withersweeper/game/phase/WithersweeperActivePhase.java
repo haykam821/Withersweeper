@@ -3,7 +3,6 @@ package io.github.haykam821.withersweeper.game.phase;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
@@ -58,7 +57,7 @@ public class WithersweeperActivePhase {
 		this.gameSpace = gameSpace;
 		this.config = config;
 		this.board = board;
-		this.statistics = gameSpace.getStatistics().bundle(Main.MOD_ID);
+		this.statistics = config.getStatisticBundle(gameSpace);
 	}
 
 	public static void open(GameSpace gameSpace, ServerWorld world, WithersweeperConfig config, Board board) {
@@ -119,8 +118,10 @@ public class WithersweeperActivePhase {
 			player.sendMessage(text, false);
 		}
 
-		for (PlayerRef participant : this.participants) {
-			this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_LOST, 1);
+		if (this.statistics != null) {
+			for (PlayerRef participant : this.participants) {
+				this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_LOST, 1);
+			}
 		}
 
 		this.gameSpace.close(GameCloseReason.FINISHED);
@@ -169,7 +170,7 @@ public class WithersweeperActivePhase {
 
 	private void addParticipant(ServerPlayerEntity player) {
 		PlayerRef participant = PlayerRef.of(player);
-		if (this.participants.add(participant)) {
+		if (this.participants.add(participant) && this.statistics != null) {
 			this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_PLAYED, 1);
 		}
 	}
@@ -199,9 +200,11 @@ public class WithersweeperActivePhase {
 					player.sendMessage(text, false);
 				}
 
-				for (PlayerRef participant : this.participants) {
-					this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_WON, 1);
-					this.statistics.forPlayer(participant).increment(StatisticKeys.QUICKEST_TIME, this.timeElapsed);
+				if (this.statistics != null) {
+					for (PlayerRef participant : this.participants) {
+						this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_WON, 1);
+						this.statistics.forPlayer(participant).increment(StatisticKeys.QUICKEST_TIME, this.timeElapsed);
+					}
 				}
 
 				this.gameSpace.close(GameCloseReason.FINISHED);
@@ -245,6 +248,9 @@ public class WithersweeperActivePhase {
 	}
 
 	public StatisticMap getStatisticsForPlayer(ServerPlayerEntity player) {
+		if (this.statistics == null) {
+			return null;
+		}
 		return this.statistics.forPlayer(player);
 	}
 

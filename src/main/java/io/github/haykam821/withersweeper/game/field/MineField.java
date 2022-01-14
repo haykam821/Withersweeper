@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
+import xyz.nucleoid.plasmid.game.stats.StatisticMap;
 
 public class MineField extends Field {
 	private static final BlockState STATE = Blocks.TNT.getDefaultState();
@@ -23,7 +24,11 @@ public class MineField extends Field {
 	public void uncover(BlockPos pos, ServerPlayerEntity uncoverer, WithersweeperActivePhase phase, LongSet uncoveredPositions, int depth) {
 		super.uncover(pos, uncoverer, phase, uncoveredPositions, depth);
 
-		phase.getStatisticsForPlayer(uncoverer).increment(Main.MINES_REVEALED, 1);
+		StatisticMap statistics = phase.getStatisticsForPlayer(uncoverer);
+		if (statistics != null) {
+			statistics.increment(Main.MINES_REVEALED, 1);
+		}
+
 		phase.mistakes += 1;
 	}
 

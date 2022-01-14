@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
+import xyz.nucleoid.plasmid.game.stats.StatisticMap;
 
 public class Field {
 	private static final int MAX_UNCOVER_DEPTH = 25;
@@ -47,7 +48,11 @@ public class Field {
 		uncoveredPositions.add(pos.asLong());
 
 		this.setVisibility(FieldVisibility.UNCOVERED);
-		phase.getStatisticsForPlayer(uncoverer).increment(Main.FIELDS_UNCOVERED, 1);
+
+		StatisticMap statistics = phase.getStatisticsForPlayer(uncoverer);
+		if (statistics != null) {
+			statistics.increment(Main.FIELDS_UNCOVERED, 1);
+		}
 
 		if (this.canUncoverRecursively() && depth < MAX_UNCOVER_DEPTH) {
 			for (BlockPos neighborPos : BlockPos.iterate(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 1, pos.getY(), pos.getZ() + 1)) {
