@@ -1,5 +1,6 @@
 {
 	"type": "withersweeper:withersweeper",
+	"icon": "minecraft:red_banner",
 	"board": {
 		"x": 24,
 		"z": 24,
