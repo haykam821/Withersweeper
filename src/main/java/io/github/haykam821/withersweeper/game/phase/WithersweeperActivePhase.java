@@ -134,7 +134,7 @@ public class WithersweeperActivePhase {
 	private void updateFlagCount() {
 		ItemStack flagStack = ItemStackBuilder.of(this.config.getFlagStack())
 			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
-			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
+			.addLore(new TranslatableText("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
 			.setCount(this.board.getRemainingFlags())
 			.build();
 
@@ -159,7 +159,7 @@ public class WithersweeperActivePhase {
 
 			return ActionResult.SUCCESS;
 		} else if (field.getVisibility() == FieldVisibility.COVERED) {
-			field.uncover(pos, uncoverer, this, new LongArraySet(), 0);
+			field.uncover(pos, uncoverer, this);
 			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
 
 			return ActionResult.SUCCESS;

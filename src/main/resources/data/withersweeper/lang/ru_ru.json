@@ -1,0 +1,22 @@
+{
+	"game.withersweeper.beginner_withersweeper": "Визер-сапёр: Новичок",
+	"game.withersweeper.expert_withersweeper": "Визер-сапёр: Эксперт",
+	"game.withersweeper.intermediate_withersweeper": "Визер-сапёр: Любитель",
+	"gameType.withersweeper.withersweeper": "Визер-сапёр",
+	"statistic.bundle.beginner_withersweeper": "Визер-сапёр: Новичок",
+	"statistic.bundle.intermediate_withersweeper": "Визер-сапёр: Любитель",
+	"statistic.bundle.expert_withersweeper": "Визер-сапёр: Эксперт",
+	"statistic.withersweeper.fields_uncovered": "Открыто ячеек",
+	"statistic.withersweeper.mines_revealed": "Открыто заминированных ячеек",
+	"text.withersweeper.complete": "Поле завершено за %s секунд!",
+	"text.withersweeper.flag_description.line1": "Нажмите ПКМ по неоткрытой ячейке,",
+	"text.withersweeper.flag_description.line2": "чтобы пометить её заминированной.",
+	"text.withersweeper.info.covered": "Эта ячейка не открыта",
+	"text.withersweeper.info.default": "Это ячейка",
+	"text.withersweeper.info.flagged": "Эта ячейка помечена",
+	"text.withersweeper.info.mine": "Эта ячейка заминирована",
+	"text.withersweeper.info.number": "Рядом с этой ячейкой %s мина",
+	"text.withersweeper.info.number.plural": "Рядом с этой ячейкой %s мин(ы)",
+	"text.withersweeper.reveal_mine": "%s обнаружил мину!",
+	"text.withersweeper.reveal_mine.max_mistakes": "%s обнаружил мину! Достигнут предел ошибок — %s."
+}

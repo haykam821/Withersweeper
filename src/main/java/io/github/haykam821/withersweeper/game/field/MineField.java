@@ -21,8 +21,8 @@ public class MineField extends Field {
 	}
 
 	@Override
-	public void uncover(BlockPos pos, ServerPlayerEntity uncoverer, WithersweeperActivePhase phase, LongSet uncoveredPositions, int depth) {
-		super.uncover(pos, uncoverer, phase, uncoveredPositions, depth);
+	public void uncover(BlockPos pos, ServerPlayerEntity uncoverer, WithersweeperActivePhase phase) {
+		super.uncover(pos, uncoverer, phase);
 
 		StatisticMap statistics = phase.getStatisticsForPlayer(uncoverer);
 		if (statistics != null) {
