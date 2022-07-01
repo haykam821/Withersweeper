@@ -2,18 +2,16 @@ package io.github.haykam821.withersweeper.game.field;
 
 import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.game.stats.StatisticMap;
+
+import java.util.ArrayDeque;
 
 public class Field {
-	private static final int MAX_UNCOVER_DEPTH = 25;
-
 	private static final BlockState DEFAULT_STATE = Blocks.AIR.getDefaultState();
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
@@ -44,25 +42,33 @@ public class Field {
 		return this.getVisibility() == FieldVisibility.UNCOVERED;
 	}
 
-	public void uncover(BlockPos pos, ServerPlayerEntity uncoverer, WithersweeperActivePhase phase, LongSet uncoveredPositions, int depth) {
-		uncoveredPositions.add(pos.asLong());
+	public void uncover(BlockPos blockPos, ServerPlayerEntity uncoverer, WithersweeperActivePhase phase) {
+		var y = blockPos.getY();
+		var board = phase.getBoard();
+		var stack = new ArrayDeque<BlockPos>();
 
-		this.setVisibility(FieldVisibility.UNCOVERED);
-
-		StatisticMap statistics = phase.getStatisticsForPlayer(uncoverer);
-		if (statistics != null) {
-			statistics.increment(Main.FIELDS_UNCOVERED, 1);
-		}
-
-		if (this.canUncoverRecursively() && depth < MAX_UNCOVER_DEPTH) {
-			for (BlockPos neighborPos : BlockPos.iterate(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 1, pos.getY(), pos.getZ() + 1)) {
-				if (!uncoveredPositions.contains(neighborPos.asLong())) {
-					Field field = phase.getBoard().getField(neighborPos.getX(), neighborPos.getZ());
+		var fieldsUncovered = 0;
+		stack.add(blockPos);
+		while (!stack.isEmpty()) {
+			var pos = stack.pop();
+			var x = pos.getX();
+			var z = pos.getZ();
+			var currentField = board.getField(x, z);
+			currentField.setVisibility(FieldVisibility.UNCOVERED);
+			fieldsUncovered++;
+			if (currentField.canUncoverRecursively()) {
+				for (var neighbor : BlockPos.iterate(x - 1, y, z - 1, x + 1, y, z + 1)) {
+					var field = board.getField(neighbor.getX(), neighbor.getZ());
 					if (field != null && field.getVisibility() == FieldVisibility.COVERED) {
-						field.uncover(neighborPos, uncoverer, phase, uncoveredPositions, depth + 1);
+						stack.add(neighbor.mutableCopy());
 					}
 				}
 			}
+		}
+
+		var statistics = phase.getStatisticsForPlayer(uncoverer);
+		if (statistics != null) {
+			statistics.increment(Main.FIELDS_UNCOVERED, fieldsUncovered);
 		}
 	}
 
