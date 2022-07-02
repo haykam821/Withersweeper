@@ -17,6 +17,6 @@
 	"text.withersweeper.info.mine": "Эта ячейка заминирована",
 	"text.withersweeper.info.number": "Рядом с этой ячейкой %s мина",
 	"text.withersweeper.info.number.plural": "Рядом с этой ячейкой %s мин(ы)",
-	"text.withersweeper.reveal_mine": "%s обнаружил мину!",
-	"text.withersweeper.reveal_mine.max_mistakes": "%s обнаружил мину! Достигнут предел ошибок — %s."
+	"text.withersweeper.reveal_mine": "%s натолкнулся на мину!",
+	"text.withersweeper.reveal_mine.max_mistakes": "%s натолкнулся на мину! Достигнут предел ошибок — %s."
 }
