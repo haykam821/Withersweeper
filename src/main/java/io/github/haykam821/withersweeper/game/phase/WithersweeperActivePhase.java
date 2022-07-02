@@ -135,7 +135,7 @@ public class WithersweeperActivePhase {
 		ItemStack flagStack = ItemStackBuilder.of(this.config.getFlagStack())
 			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
 			.addLore(new TranslatableText("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
-			.setCount(this.board.getRemainingFlags())
+			.setCount(Math.min(this.board.getRemainingFlags(), 127))
 			.build();
 
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
