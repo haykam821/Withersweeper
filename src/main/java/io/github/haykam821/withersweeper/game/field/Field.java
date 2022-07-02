@@ -12,6 +12,8 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayDeque;
 
 public class Field {
+	private static final int MAX_UNCOVER_DEPTH = 125000;
+
 	private static final BlockState DEFAULT_STATE = Blocks.AIR.getDefaultState();
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
@@ -49,20 +51,72 @@ public class Field {
 
 		var fieldsUncovered = 0;
 		stack.add(blockPos);
-		while (!stack.isEmpty()) {
+		for (int depth = 0; !stack.isEmpty() && depth <= MAX_UNCOVER_DEPTH; depth++) {
 			var pos = stack.pop();
 			var x = pos.getX();
 			var z = pos.getZ();
 			var currentField = board.getField(x, z);
-			currentField.setVisibility(FieldVisibility.UNCOVERED);
-			fieldsUncovered++;
 			if (currentField.canUncoverRecursively()) {
-				for (var neighbor : BlockPos.iterate(x - 1, y, z - 1, x + 1, y, z + 1)) {
-					var field = board.getField(neighbor.getX(), neighbor.getZ());
-					if (field != null && field.getVisibility() == FieldVisibility.COVERED) {
-						stack.add(neighbor.mutableCopy());
-					}
+				// find a west border
+				var field = currentField;
+				while (field != null && field.canUncoverRecursively()) {
+					field = board.getField(--x, z);
 				}
+
+				// iterate until find an east border
+				boolean eastBorder = false;
+				boolean spanNorth = false;
+				boolean spanSouth = false;
+				while (true) {
+					// uncover a field
+					if (field != null && field.getVisibility() == FieldVisibility.COVERED) {
+						field.setVisibility(FieldVisibility.UNCOVERED);
+						fieldsUncovered++;
+					}
+
+					// check north
+					field = board.getField(x, z - 1);
+					if (field != null) {
+						if (field.canUncoverRecursively()) {
+							if (!spanNorth && field.getVisibility() == FieldVisibility.COVERED) {
+								stack.add(new BlockPos(x, y, z - 1));
+								spanNorth = true;
+							}
+						} else {
+							if (field.getVisibility() == FieldVisibility.COVERED) {
+								field.setVisibility(FieldVisibility.UNCOVERED);
+								fieldsUncovered++;
+							}
+							if (spanNorth) spanNorth = false;
+						}
+					}
+
+					// check south
+					field = board.getField(x, z + 1);
+					if (field != null) {
+						if (field.canUncoverRecursively()) {
+							if (!spanSouth && field.getVisibility() == FieldVisibility.COVERED) {
+								stack.add(new BlockPos(x, y, z + 1));
+								spanSouth = true;
+							}
+						} else {
+							if (field.getVisibility() == FieldVisibility.COVERED) {
+								field.setVisibility(FieldVisibility.UNCOVERED);
+								fieldsUncovered++;
+							}
+							if (spanSouth) spanSouth = false;
+						}
+					}
+
+					if (eastBorder) break;
+
+					// move to a next field
+					field = board.getField(++x, z);
+					eastBorder = field == null || !field.canUncoverRecursively();
+				}
+			} else if (currentField.getVisibility() == FieldVisibility.COVERED) {
+				currentField.setVisibility(FieldVisibility.UNCOVERED);
+				fieldsUncovered++;
 			}
 		}
 
