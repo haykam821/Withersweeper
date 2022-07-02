@@ -7,7 +7,6 @@ import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -131,19 +130,26 @@ public class WithersweeperActivePhase {
 		return player.getInventory().selectedSlot == 8;
 	}
 
-	private void updateFlagCount() {
-		ItemStack flagStack = ItemStackBuilder.of(this.config.getFlagStack())
+	private ItemStackBuilder getFlagStackBuilder() {
+		return ItemStackBuilder.of(this.config.getFlagStack())
 			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
 			.addLore(new TranslatableText("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
-			.setCount(Math.min(this.board.getRemainingFlags(), 127))
-			.build();
+			.setCount(Math.min(this.board.getRemainingFlags(), 127));
+	}
+
+	private void setFlagSlot(ServerPlayerEntity player, ItemStack stack) {
+		player.getInventory().setStack(8, stack);
+
+		// Update inventory
+		player.currentScreenHandler.sendContentUpdates();
+		player.playerScreenHandler.onContentChanged(player.getInventory());
+	}
+
+	private void updateFlagCount() {
+		ItemStackBuilder flagStackBuilder = this.getFlagStackBuilder();
 
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
-			player.getInventory().setStack(8, flagStack.copy());
-
-			// Update inventory
-			player.currentScreenHandler.sendContentUpdates();
-			player.playerScreenHandler.onContentChanged(player.getInventory());
+			this.setFlagSlot(player, flagStackBuilder.build());
 		}
 	}
 
@@ -217,6 +223,7 @@ public class WithersweeperActivePhase {
 	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
 		return offer.accept(this.world, WithersweeperActivePhase.getSpawnPos(this.config)).and(() -> {
 			offer.player().changeGameMode(GameMode.ADVENTURE);
+			this.setFlagSlot(offer.player(), this.getFlagStackBuilder().build());
 		});
 	}
 
