@@ -1,16 +1,15 @@
 package io.github.haykam821.withersweeper.game;
 
-import java.util.Optional;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-
 import io.github.haykam821.withersweeper.game.board.BoardConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
+
+import java.util.Optional;
 
 public class WithersweeperConfig {
 	public static final Codec<WithersweeperConfig> CODEC = RecordCodecBuilder.create(instance -> {

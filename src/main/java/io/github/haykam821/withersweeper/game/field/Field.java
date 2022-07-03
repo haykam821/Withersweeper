@@ -1,6 +1,6 @@
 package io.github.haykam821.withersweeper.game.field;
 
-import io.github.haykam821.withersweeper.Main;
+import io.github.haykam821.withersweeper.Withersweeper;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -122,7 +122,7 @@ public class Field {
 
 		var statistics = phase.getStatisticsForPlayer(uncoverer);
 		if (statistics != null) {
-			statistics.increment(Main.FIELDS_UNCOVERED, fieldsUncovered);
+			statistics.increment(Withersweeper.FIELDS_UNCOVERED, fieldsUncovered);
 		}
 	}
 

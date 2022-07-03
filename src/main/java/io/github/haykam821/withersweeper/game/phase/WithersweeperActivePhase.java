@@ -1,8 +1,6 @@
 package io.github.haykam821.withersweeper.game.phase;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import io.github.haykam821.withersweeper.Withersweeper;
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
@@ -22,6 +20,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameActivity;
@@ -35,11 +34,15 @@ import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
 import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
 import xyz.nucleoid.plasmid.game.stats.StatisticMap;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
+import xyz.nucleoid.stimuli.event.block.BlockPunchEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.item.ItemThrowEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class WithersweeperActivePhase {
 	private final ServerWorld world;
@@ -67,12 +70,14 @@ public class WithersweeperActivePhase {
 			WithersweeperActivePhase.setRules(activity);
 
 			// Listeners
-			activity.listen(ItemThrowEvent.EVENT, phase::onThrowItem);
 			activity.listen(GameActivityEvents.ENABLE, phase::enable);
 			activity.listen(GameActivityEvents.TICK, phase::tick);
-			activity.listen(GamePlayerEvents.OFFER, phase::offerPlayer);
+			activity.listen(GamePlayerEvents.OFFER, phase::onPlayerOffer);
 			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
-			activity.listen(BlockUseEvent.EVENT, phase::useBlock);
+			activity.listen(BlockUseEvent.EVENT, phase::onUseBlock);
+			activity.listen(BlockPunchEvent.EVENT, phase::onPunchBlock);
+			activity.listen(BlockBreakEvent.EVENT, phase::onBreakBlock);
+			activity.listen(ItemThrowEvent.EVENT, phase::onThrowItem);
 		});
 	}
 
@@ -86,7 +91,10 @@ public class WithersweeperActivePhase {
 	}
 
 	private void enable() {
-		this.updateFlagCount();
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+			player.changeGameMode(GameMode.SURVIVAL);
+		}
+		this.updateFlagCounter();
 	}
 
 	private void tick() {
@@ -126,52 +134,13 @@ public class WithersweeperActivePhase {
 		this.gameSpace.close(GameCloseReason.FINISHED);
 	}
 
-	private boolean isModifyingFlags(PlayerEntity player) {
-		return player.getInventory().selectedSlot == 8;
-	}
-
-	private ItemStackBuilder getFlagStackBuilder() {
-		return ItemStackBuilder.of(this.config.getFlagStack())
-			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
-			.addLore(new TranslatableText("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
-			.setCount(Math.min(this.board.getRemainingFlags(), 127));
-	}
-
-	private void setFlagSlot(ServerPlayerEntity player, ItemStack stack) {
-		player.getInventory().setStack(8, stack);
-
-		// Update inventory
-		player.currentScreenHandler.sendContentUpdates();
-		player.playerScreenHandler.onContentChanged(player.getInventory());
-	}
-
-	private void updateFlagCount() {
-		ItemStackBuilder flagStackBuilder = this.getFlagStackBuilder();
-
+	private void updateFlagCounter() {
+		var remainingFlags = Math.max(this.board.getRemainingFlags(), 0);
+		var experienceProgress = (float) remainingFlags / this.board.getMinesCount();
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
-			this.setFlagSlot(player, flagStackBuilder.build());
+			player.experienceProgress = experienceProgress;
+			player.setExperienceLevel(remainingFlags);
 		}
-	}
-
-	private ActionResult modifyField(ServerPlayerEntity uncoverer, BlockPos pos, Field field) {
-		if (this.isModifyingFlags(uncoverer) && field.getVisibility() != FieldVisibility.UNCOVERED) {
-			if (field.getVisibility() == FieldVisibility.FLAGGED) {
-				field.setVisibility(FieldVisibility.COVERED);
-				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, SoundCategory.BLOCKS, 1, 1);
-			} else {
-				field.setVisibility(FieldVisibility.FLAGGED);
-				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
-			}
-
-			return ActionResult.SUCCESS;
-		} else if (field.getVisibility() == FieldVisibility.COVERED) {
-			field.uncover(pos, uncoverer, this);
-			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
-
-			return ActionResult.SUCCESS;
-		}
-			
-		return ActionResult.PASS;
 	}
 
 	private void addParticipant(ServerPlayerEntity player) {
@@ -181,49 +150,72 @@ public class WithersweeperActivePhase {
 		}
 	}
 
-	private ActionResult useBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
-		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
+	private ActionResult onBreakBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
+		return ActionResult.FAIL;
+	}
 
-		BlockPos pos = hitResult.getBlockPos();
+	private ActionResult onUseBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
+		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
+		return this.onModifyField(uncoverer, hitResult.getBlockPos(), false);
+	}
+
+	private ActionResult onPunchBlock(ServerPlayerEntity uncoverer, Direction direction, BlockPos pos) {
+		return this.onModifyField(uncoverer, pos, true);
+	}
+
+	private ActionResult onModifyField(ServerPlayerEntity uncoverer, BlockPos pos, boolean uncover) {
 		if (pos.getY() != 0) return ActionResult.PASS;
 		if (!this.board.isValidPos(pos.getX(), pos.getZ())) return ActionResult.PASS;
 
-		this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
+		var field = this.board.getField(pos.getX(), pos.getZ());
+		var visibility = field.getVisibility();
+		if (visibility == FieldVisibility.UNCOVERED) return ActionResult.PASS;
 
-		Field field = this.board.getField(pos.getX(), pos.getZ());
-		ActionResult result = this.modifyField(uncoverer, pos, field);
-
-		if (result == ActionResult.SUCCESS) {
-			this.addParticipant(uncoverer);
-
-			this.checkMistakes(uncoverer);
-			this.board.build(this.world);
-			this.updateFlagCount();
-
-			if (this.board.isCompleted()) {
-				Text text = new TranslatableText("text.withersweeper.complete", this.timeElapsed / 20).formatted(Formatting.GOLD);
-				for (PlayerEntity player : this.gameSpace.getPlayers()) {
-					player.sendMessage(text, false);
-				}
-
-				if (this.statistics != null) {
-					for (PlayerRef participant : this.participants) {
-						this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_WON, 1);
-						this.statistics.forPlayer(participant).increment(StatisticKeys.QUICKEST_TIME, this.timeElapsed);
-					}
-				}
-
-				this.gameSpace.close(GameCloseReason.FINISHED);
+		// uncovering
+		if (uncover) {
+			if (visibility == FieldVisibility.FLAGGED) return ActionResult.PASS;
+			this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
+			field.uncover(pos, uncoverer, this);
+			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
+		}
+		// flagging
+		else {
+			if (visibility == FieldVisibility.FLAGGED) {
+				field.setVisibility(FieldVisibility.COVERED);
+				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, SoundCategory.BLOCKS, 1, 1);
+			} else {
+				field.setVisibility(FieldVisibility.FLAGGED);
+				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
 			}
 		}
 
-		return result;
+		this.addParticipant(uncoverer);
+		this.checkMistakes(uncoverer);
+		this.board.build(this.world);
+		this.updateFlagCounter();
+
+		if (this.board.isCompleted()) {
+			var text = new TranslatableText("text.withersweeper.complete", this.timeElapsed / 20).formatted(Formatting.GOLD);
+			for (var player : this.gameSpace.getPlayers()) {
+				player.sendMessage(text, false);
+			}
+			if (this.statistics != null) {
+				for (var participant : this.participants) {
+					this.statistics.forPlayer(participant).increment(StatisticKeys.GAMES_WON, 1);
+					this.statistics.forPlayer(participant).increment(StatisticKeys.QUICKEST_TIME, this.timeElapsed);
+				}
+			}
+			this.gameSpace.close(GameCloseReason.FINISHED);
+		}
+
+		return ActionResult.SUCCESS;
 	}
 
-	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+	private PlayerOfferResult onPlayerOffer(PlayerOffer offer) {
 		return offer.accept(this.world, WithersweeperActivePhase.getSpawnPos(this.config)).and(() -> {
-			offer.player().changeGameMode(GameMode.ADVENTURE);
-			this.setFlagSlot(offer.player(), this.getFlagStackBuilder().build());
+			offer.player().sendMessage(Withersweeper.DESCRIPTION_TEXT, false);
+			offer.player().changeGameMode(GameMode.SURVIVAL);
+			this.updateFlagCounter();
 		});
 	}
 
