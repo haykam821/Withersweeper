@@ -173,17 +173,22 @@ public class WithersweeperActivePhase {
 
 		// uncovering
 		if (uncover) {
-			if (visibility == FieldVisibility.FLAGGED) return ActionResult.PASS;
+			if (visibility == FieldVisibility.FLAGGED || visibility == FieldVisibility.ALTERNATIVE_FLAGGED) return ActionResult.PASS;
 			this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
 			field.uncover(pos, uncoverer, this);
 			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
 		}
 		// flagging
-		else {
-			if (visibility == FieldVisibility.FLAGGED) {
+		else switch (visibility) {
+			case FLAGGED -> {
+				field.setVisibility(FieldVisibility.ALTERNATIVE_FLAGGED);
+				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, SoundCategory.BLOCKS, 1, 1);
+			}
+			case ALTERNATIVE_FLAGGED -> {
 				field.setVisibility(FieldVisibility.COVERED);
 				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, SoundCategory.BLOCKS, 1, 1);
-			} else {
+			}
+			default -> {
 				field.setVisibility(FieldVisibility.FLAGGED);
 				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
 			}

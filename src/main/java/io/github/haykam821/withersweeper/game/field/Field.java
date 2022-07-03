@@ -17,6 +17,7 @@ public class Field {
 	private static final BlockState DEFAULT_STATE = Blocks.AIR.getDefaultState();
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
+	private static final BlockState ALTERNATIVE_FLAGGED_STATE = Blocks.WARPED_NYLIUM.getDefaultState();
 
 	private static final Text DEFAULT_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.default");
 	private static final Text COVERED_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.covered");
@@ -135,13 +136,12 @@ public class Field {
 	}
 
 	public BlockState getCoveredBlockState() {
-		if (this.visibility == FieldVisibility.COVERED) {
-			return COVERED_STATE;
-		} else if (this.visibility == FieldVisibility.FLAGGED) {
-			return FLAGGED_STATE;
-		} else {
-			return this.getBlockState();
-		}
+		return switch (this.visibility) {
+			case COVERED -> COVERED_STATE;
+			case FLAGGED -> FLAGGED_STATE;
+			case ALTERNATIVE_FLAGGED -> ALTERNATIVE_FLAGGED_STATE;
+			default -> this.getBlockState();
+		};
 	}
 
 	public Text getInfoMessage() {
@@ -149,12 +149,10 @@ public class Field {
 	}
 
 	public Text getCoveredInfoMessage() {
-		if (this.visibility == FieldVisibility.COVERED) {
-			return COVERED_INFO_MESSAGE;
-		} else if (this.visibility == FieldVisibility.FLAGGED) {
-			return FLAGGED_INFO_MESSAGE;
-		} else {
-			return this.getInfoMessage();
-		}
+		return switch (this.visibility) {
+			case COVERED -> COVERED_INFO_MESSAGE;
+			case FLAGGED, ALTERNATIVE_FLAGGED -> FLAGGED_INFO_MESSAGE;
+			default -> this.getInfoMessage();
+		};
 	}
 }
