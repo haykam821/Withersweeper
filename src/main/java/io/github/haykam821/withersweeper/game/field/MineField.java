@@ -1,8 +1,7 @@
 package io.github.haykam821.withersweeper.game.field;
 
-import io.github.haykam821.withersweeper.Main;
+import io.github.haykam821.withersweeper.Withersweeper;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,7 +25,7 @@ public class MineField extends Field {
 
 		StatisticMap statistics = phase.getStatisticsForPlayer(uncoverer);
 		if (statistics != null) {
-			statistics.increment(Main.MINES_REVEALED, 1);
+			statistics.increment(Withersweeper.MINES_REVEALED, 1);
 		}
 
 		phase.mistakes += 1;

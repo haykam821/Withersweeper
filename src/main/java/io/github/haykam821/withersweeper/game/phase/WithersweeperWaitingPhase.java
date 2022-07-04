@@ -1,5 +1,6 @@
 package io.github.haykam821.withersweeper.game.phase;
 
+import io.github.haykam821.withersweeper.Withersweeper;
 import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import net.minecraft.entity.damage.DamageSource;
@@ -67,6 +68,7 @@ public class WithersweeperWaitingPhase {
 
 	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
 		return offer.accept(this.world, WithersweeperActivePhase.getSpawnPos(this.config)).and(() -> {
+			offer.player().sendMessage(Withersweeper.DESCRIPTION_TEXT, false);
 			offer.player().changeGameMode(GameMode.ADVENTURE);
 		});
 	}

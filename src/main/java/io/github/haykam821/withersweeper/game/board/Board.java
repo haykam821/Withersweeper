@@ -1,7 +1,5 @@
 package io.github.haykam821.withersweeper.game.board;
 
-import java.util.Random;
-
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
 import io.github.haykam821.withersweeper.game.field.MineField;
@@ -9,6 +7,8 @@ import io.github.haykam821.withersweeper.game.field.NumberField;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldAccess;
 import xyz.nucleoid.map_templates.MapTemplate;
+
+import java.util.Random;
 
 public class Board {
 	private final BoardConfig config;
@@ -110,6 +110,10 @@ public class Board {
 		}
 
 		return remainingFlags;
+	}
+
+	public int getMinesCount() {
+		return this.config.mines;
 	}
 
 	public boolean isCompleted() {

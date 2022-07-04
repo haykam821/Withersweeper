@@ -13,7 +13,7 @@
 	},
 	"entrypoints": {
 		"main": [
-			"io.github.haykam821.withersweeper.Main"
+			"io.github.haykam821.withersweeper.Withersweeper"
 		]
 	},
 	"license": "MIT",
