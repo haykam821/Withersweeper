@@ -76,7 +76,6 @@ public class WithersweeperActivePhase {
 			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
 			activity.listen(BlockUseEvent.EVENT, phase::onUseBlock);
 			activity.listen(BlockPunchEvent.EVENT, phase::onPunchBlock);
-			activity.listen(BlockBreakEvent.EVENT, phase::onBreakBlock);
 			activity.listen(ItemThrowEvent.EVENT, phase::onThrowItem);
 		});
 	}
@@ -150,17 +149,14 @@ public class WithersweeperActivePhase {
 		}
 	}
 
-	private ActionResult onBreakBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
-		return ActionResult.FAIL;
-	}
-
 	private ActionResult onUseBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
 		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
 		return this.onModifyField(uncoverer, hitResult.getBlockPos(), false);
 	}
 
 	private ActionResult onPunchBlock(ServerPlayerEntity uncoverer, Direction direction, BlockPos pos) {
-		return this.onModifyField(uncoverer, pos, true);
+		this.onModifyField(uncoverer, pos, true);
+		return ActionResult.FAIL;
 	}
 
 	private ActionResult onModifyField(ServerPlayerEntity uncoverer, BlockPos pos, boolean uncover) {
