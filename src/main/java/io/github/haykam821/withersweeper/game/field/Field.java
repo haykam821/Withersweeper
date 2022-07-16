@@ -6,7 +6,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayDeque;
@@ -16,9 +15,9 @@ public class Field {
 	private static final BlockState COVERED_STATE = Blocks.SOUL_SOIL.getDefaultState();
 	private static final BlockState FLAGGED_STATE = Blocks.CRIMSON_NYLIUM.getDefaultState();
 
-	private static final Text DEFAULT_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.default");
-	private static final Text COVERED_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.covered");
-	private static final Text FLAGGED_INFO_MESSAGE = new TranslatableText("text.withersweeper.info.flagged");
+	private static final Text DEFAULT_INFO_MESSAGE = Text.translatable("text.withersweeper.info.default");
+	private static final Text COVERED_INFO_MESSAGE = Text.translatable("text.withersweeper.info.covered");
+	private static final Text FLAGGED_INFO_MESSAGE = Text.translatable("text.withersweeper.info.flagged");
 
 	private FieldVisibility visibility;
 
