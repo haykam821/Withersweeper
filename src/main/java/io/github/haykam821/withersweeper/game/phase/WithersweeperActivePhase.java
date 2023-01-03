@@ -81,6 +81,8 @@ public class WithersweeperActivePhase {
 		activity.deny(GameRuleType.CRAFTING);
 		activity.deny(GameRuleType.FALL_DAMAGE);
 		activity.deny(GameRuleType.HUNGER);
+		activity.deny(GameRuleType.MODIFY_ARMOR);
+		activity.deny(GameRuleType.MODIFY_INVENTORY);
 		activity.deny(GameRuleType.PORTALS);
 		activity.deny(GameRuleType.PVP);
 	}
