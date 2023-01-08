@@ -15,7 +15,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -117,9 +116,9 @@ public class WithersweeperActivePhase {
 		Text displayName = causer.getDisplayName();
 
 		if (this.config.getMaxMistakes() <= 1) {
-			return new TranslatableText("text.withersweeper.reveal_mine", displayName).formatted(Formatting.RED);
+			return Text.translatable("text.withersweeper.reveal_mine", displayName).formatted(Formatting.RED);
 		} else {
-			return new TranslatableText("text.withersweeper.reveal_mine.max_mistakes", displayName, this.config.getMaxMistakes()).formatted(Formatting.RED);
+			return Text.translatable("text.withersweeper.reveal_mine.max_mistakes", displayName, this.config.getMaxMistakes()).formatted(Formatting.RED);
 		}
 	}
 
@@ -146,8 +145,8 @@ public class WithersweeperActivePhase {
 
 	private ItemStackBuilder getFlagStackBuilder() {
 		return ItemStackBuilder.of(this.config.getFlagStack())
-			.addLore(new TranslatableText("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
-			.addLore(new TranslatableText("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
+			.addLore(Text.translatable("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
+			.addLore(Text.translatable("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
 			.setCount(this.board.getRemainingFlags());
 	}
 
@@ -216,7 +215,7 @@ public class WithersweeperActivePhase {
 			this.updateFlagCount();
 
 			if (this.board.isCompleted()) {
-				Text text = new TranslatableText("text.withersweeper.complete", this.timeElapsed / 20).formatted(Formatting.GOLD);
+				Text text = Text.translatable("text.withersweeper.complete", this.timeElapsed / 20).formatted(Formatting.GOLD);
 				for (PlayerEntity player : this.gameSpace.getPlayers()) {
 					player.sendMessage(text, false);
 				}
@@ -254,7 +253,7 @@ public class WithersweeperActivePhase {
 
 		Field field = this.board.getField(pos.getX(), pos.getZ());
 
-		Text message = field.getCoveredInfoMessage().shallowCopy().formatted(Formatting.DARK_PURPLE);
+		Text message = field.getCoveredInfoMessage().copy().formatted(Formatting.DARK_PURPLE);
 		player.sendMessage(message, true);
 
 		return true;

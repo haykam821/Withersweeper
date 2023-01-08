@@ -3,7 +3,6 @@ package io.github.haykam821.withersweeper.game.field;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class NumberField extends Field {
 	private static final BlockState[] VALUES_TO_STATES = new BlockState[] {
@@ -46,7 +45,7 @@ public class NumberField extends Field {
 
 	@Override
 	public Text getInfoMessage() {
-		return new TranslatableText("text.withersweeper.info.number" + (this.value == 1 ? "" : ".plural"), this.value);
+		return Text.translatable("text.withersweeper.info.number" + (this.value == 1 ? "" : ".plural"), this.value);
 	}
 
 	public NumberField increaseValue() {
