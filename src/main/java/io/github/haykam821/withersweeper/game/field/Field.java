@@ -2,6 +2,7 @@ package io.github.haykam821.withersweeper.game.field;
 
 import io.github.haykam821.withersweeper.Main;
 import io.github.haykam821.withersweeper.game.phase.WithersweeperActivePhase;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -53,13 +54,15 @@ public class Field {
 			var x = pos.getX();
 			var z = pos.getZ();
 			var currentField = board.getField(x, z);
-			currentField.setVisibility(FieldVisibility.UNCOVERED);
-			fieldsUncovered++;
-			if (currentField.canUncoverRecursively()) {
-				for (var neighbor : BlockPos.iterate(x - 1, y, z - 1, x + 1, y, z + 1)) {
-					var field = board.getField(neighbor.getX(), neighbor.getZ());
-					if (field != null && field.getVisibility() == FieldVisibility.COVERED) {
-						stack.add(neighbor.mutableCopy());
+			if (currentField.getVisibility() == FieldVisibility.COVERED) {
+				currentField.setVisibility(FieldVisibility.UNCOVERED);
+				fieldsUncovered++;
+				if (currentField.canUncoverRecursively()) {
+					for (var neighbor : BlockPos.iterate(x - 1, y, z - 1, x + 1, y, z + 1)) {
+						var field = board.getField(neighbor.getX(), neighbor.getZ());
+						if (field != null && field.getVisibility() == FieldVisibility.COVERED) {
+							stack.add(new BlockPos(neighbor));
+						}
 					}
 				}
 			}

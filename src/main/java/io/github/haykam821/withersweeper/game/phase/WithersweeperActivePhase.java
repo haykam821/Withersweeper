@@ -50,6 +50,8 @@ public class WithersweeperActivePhase {
 	private int timeElapsed = 0;
 	public int mistakes = 0;
 
+	private int ticksUntilClose = -1;
+
 	public WithersweeperActivePhase(GameSpace gameSpace, ServerWorld world, WithersweeperConfig config, Board board) {
 		this.world = world;
 		this.gameSpace = gameSpace;
@@ -80,6 +82,8 @@ public class WithersweeperActivePhase {
 		activity.deny(GameRuleType.CRAFTING);
 		activity.deny(GameRuleType.FALL_DAMAGE);
 		activity.deny(GameRuleType.HUNGER);
+		activity.deny(GameRuleType.MODIFY_ARMOR);
+		activity.deny(GameRuleType.MODIFY_INVENTORY);
 		activity.deny(GameRuleType.PORTALS);
 		activity.deny(GameRuleType.PVP);
 	}
@@ -89,6 +93,16 @@ public class WithersweeperActivePhase {
 	}
 
 	private void tick() {
+		// Decrease ticks until game end to zero
+		if (this.isGameEnding()) {
+			if (this.ticksUntilClose == 0) {
+				this.gameSpace.close(GameCloseReason.FINISHED);
+			}
+
+			this.ticksUntilClose -= 1;
+			return;
+		}
+
 		this.timeElapsed += 1;
 
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
@@ -122,7 +136,7 @@ public class WithersweeperActivePhase {
 			}
 		}
 
-		this.gameSpace.close(GameCloseReason.FINISHED);
+		this.endGame();
 	}
 
 	private boolean isModifyingFlags(PlayerEntity player) {
@@ -181,6 +195,7 @@ public class WithersweeperActivePhase {
 	}
 
 	private ActionResult useBlock(ServerPlayerEntity uncoverer, Hand hand, BlockHitResult hitResult) {
+		if (this.isGameEnding()) return ActionResult.PASS;
 		if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
 
 		BlockPos pos = hitResult.getBlockPos();
@@ -212,7 +227,7 @@ public class WithersweeperActivePhase {
 					}
 				}
 
-				this.gameSpace.close(GameCloseReason.FINISHED);
+				this.endGame();
 			}
 		}
 
@@ -266,6 +281,14 @@ public class WithersweeperActivePhase {
 
 	private void spawn(ServerPlayerEntity player) {
 		WithersweeperActivePhase.spawn(player, this.world, this.config);
+	}
+
+	private void endGame() {
+		this.ticksUntilClose = this.config.getTicksUntilClose().get(this.world.getRandom());
+	}
+
+	private boolean isGameEnding() {
+		return this.ticksUntilClose >= 0;
 	}
 
 	protected static void spawn(ServerPlayerEntity player, ServerWorld world, WithersweeperConfig config) {
