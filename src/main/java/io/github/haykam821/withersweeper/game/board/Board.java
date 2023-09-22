@@ -17,7 +17,7 @@ public class Board {
 	public Board(BoardConfig config) {
 		this.config = config;
 
-		this.fields = new Field[this.config.x][this.config.z];
+		this.fields = new Field[this.config.z][this.config.x];
 		for (int x = 0; x < this.config.x; x++) {
 			for (int z = 0; z < this.config.z; z++) {
 				this.setField(x, z, new NumberField(0));
