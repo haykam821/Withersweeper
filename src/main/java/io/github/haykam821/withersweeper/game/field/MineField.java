@@ -7,7 +7,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.game.stats.StatisticMap;
+import xyz.nucleoid.plasmid.api.game.stats.StatisticMap;
 
 public class MineField extends Field {
 	private static final BlockState STATE = Blocks.TNT.getDefaultState();
