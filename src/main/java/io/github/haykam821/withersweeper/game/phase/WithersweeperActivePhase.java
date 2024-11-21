@@ -7,8 +7,10 @@ import io.github.haykam821.withersweeper.game.WithersweeperConfig;
 import io.github.haykam821.withersweeper.game.board.Board;
 import io.github.haykam821.withersweeper.game.field.Field;
 import io.github.haykam821.withersweeper.game.field.FieldVisibility;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -23,19 +25,21 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.plasmid.game.GameActivity;
-import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
-import xyz.nucleoid.plasmid.game.player.PlayerOffer;
-import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
-import xyz.nucleoid.plasmid.game.rule.GameRuleType;
-import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
-import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
-import xyz.nucleoid.plasmid.game.stats.StatisticMap;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.plasmid.api.game.GameActivity;
+import xyz.nucleoid.plasmid.api.game.GameCloseReason;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptor;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptorResult;
+import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
+import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.game.stats.GameStatisticBundle;
+import xyz.nucleoid.plasmid.api.game.stats.StatisticKeys;
+import xyz.nucleoid.plasmid.api.game.stats.StatisticMap;
+import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.item.ItemThrowEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
@@ -71,7 +75,8 @@ public class WithersweeperActivePhase {
 			activity.listen(ItemThrowEvent.EVENT, phase::onThrowItem);
 			activity.listen(GameActivityEvents.ENABLE, phase::enable);
 			activity.listen(GameActivityEvents.TICK, phase::tick);
-			activity.listen(GamePlayerEvents.OFFER, phase::offerPlayer);
+			activity.listen(GamePlayerEvents.ACCEPT, phase::onAcceptPlayers);
+			activity.listen(GamePlayerEvents.OFFER, JoinOffer::accept);
 			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
 			activity.listen(BlockUseEvent.EVENT, phase::useBlock);
 		});
@@ -147,6 +152,7 @@ public class WithersweeperActivePhase {
 		return ItemStackBuilder.of(this.config.getFlagStack())
 			.addLore(Text.translatable("text.withersweeper.flag_description.line1").formatted(Formatting.GRAY))
 			.addLore(Text.translatable("text.withersweeper.flag_description.line2").formatted(Formatting.GRAY))
+			.set(DataComponentTypes.MAX_STACK_SIZE, Item.MAX_MAX_COUNT)
 			.setCount(this.board.getRemainingFlags());
 	}
 
@@ -166,7 +172,7 @@ public class WithersweeperActivePhase {
 		}
 	}
 
-	private ActionResult modifyField(ServerPlayerEntity uncoverer, BlockPos pos, Field field) {
+	private EventResult modifyField(ServerPlayerEntity uncoverer, BlockPos pos, Field field) {
 		if (this.isModifyingFlags(uncoverer) && field.getVisibility() != FieldVisibility.UNCOVERED) {
 			if (field.getVisibility() == FieldVisibility.FLAGGED) {
 				field.setVisibility(FieldVisibility.COVERED);
@@ -176,15 +182,15 @@ public class WithersweeperActivePhase {
 				this.world.playSound(null, pos, SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1, 1);
 			}
 
-			return ActionResult.SUCCESS;
+			return EventResult.ALLOW;
 		} else if (field.getVisibility() == FieldVisibility.COVERED) {
 			field.uncover(pos, uncoverer, this);
 			this.world.playSound(null, pos, SoundEvents.BLOCK_SAND_BREAK, SoundCategory.BLOCKS, 0.5f, 1);
 
-			return ActionResult.SUCCESS;
+			return EventResult.ALLOW;
 		}
 			
-		return ActionResult.PASS;
+		return EventResult.PASS;
 	}
 
 	private void addParticipant(ServerPlayerEntity player) {
@@ -205,9 +211,9 @@ public class WithersweeperActivePhase {
 		this.board.placeMines(pos.getX(), pos.getZ(), this.world.getRandom());
 
 		Field field = this.board.getField(pos.getX(), pos.getZ());
-		ActionResult result = this.modifyField(uncoverer, pos, field);
+		EventResult result = this.modifyField(uncoverer, pos, field);
 
-		if (result == ActionResult.SUCCESS) {
+		if (result == EventResult.ALLOW) {
 			this.addParticipant(uncoverer);
 
 			this.checkMistakes(uncoverer);
@@ -231,20 +237,20 @@ public class WithersweeperActivePhase {
 			}
 		}
 
-		return result;
+		return result.asActionResult();
 	}
 
-	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
-		return offer.accept(this.world, WithersweeperActivePhase.getSpawnPos(this.config)).and(() -> {
-			offer.player().changeGameMode(GameMode.ADVENTURE);
-			this.setFlagSlot(offer.player(), this.getFlagStackBuilder().build());
+	private JoinAcceptorResult onAcceptPlayers(JoinAcceptor acceptor) {
+		return acceptor.teleport(this.world, WithersweeperActivePhase.getSpawnPos(this.config)).thenRunForEach(player -> {
+			player.changeGameMode(GameMode.ADVENTURE);
+			this.setFlagSlot(player, this.getFlagStackBuilder().build());
 		});
 	}
 
-	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+	private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player
 		this.spawn(player);
-		return ActionResult.FAIL;
+		return EventResult.DENY;
 	}
 
 	private boolean attemptToSendInfoMessage(PlayerEntity player, BlockPos pos) {
@@ -259,13 +265,13 @@ public class WithersweeperActivePhase {
 		return true;
 	}
 
-	private ActionResult onThrowItem(PlayerEntity player, int slot, ItemStack stack) {
+	private EventResult onThrowItem(PlayerEntity player, int slot, ItemStack stack) {
 		HitResult hit = player.raycast(8, 0, false);
 		if (hit.getType() == HitResult.Type.BLOCK) {
 			this.attemptToSendInfoMessage(player, ((BlockHitResult) hit).getBlockPos());
 		}
 
-		return ActionResult.FAIL;
+		return EventResult.DENY;
 	}
 
 	public StatisticMap getStatisticsForPlayer(ServerPlayerEntity player) {
@@ -293,7 +299,7 @@ public class WithersweeperActivePhase {
 
 	protected static void spawn(ServerPlayerEntity player, ServerWorld world, WithersweeperConfig config) {
 		Vec3d spawnPos = WithersweeperActivePhase.getSpawnPos(config);
-		player.teleport(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
+		player.teleport(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), Set.of(), 0, 0, true);
 	}
 
 	protected static Vec3d getSpawnPos(WithersweeperConfig config) {
